@@ -4,81 +4,101 @@ import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
-import Badge from '@mui/material/Badge'; // Import Badge
-// MUI Icons
-import BusinessIcon from '@mui/icons-material/Business'; // Main icon for investments
-import ShowChartIcon from '@mui/icons-material/ShowChart';
+import Badge from '@mui/material/Badge';
+import Divider from '@mui/material/Divider';
+// Icons
+import FoundationIcon from '@mui/icons-material/Foundation';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import DomainIcon from '@mui/icons-material/Domain';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import CloudQueueIcon from '@mui/icons-material/CloudQueue'; // Moderate risk / smog
+import CloudQueueIcon from '@mui/icons-material/CloudQueue';
+import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 
-const getDistrictStyle = (status) => {
-  switch (status) {
-    case 'risky':
-      return { bgcolor: 'rgba(239, 83, 80, 0.1)', borderColor: 'error.main', IconComponent: BusinessIcon, iconColor: 'error.dark', label: 'High Risk Detected!', statusIcon: WarningAmberIcon, statusColor: 'error' };
-    case 'moderate':
-      return { bgcolor: 'rgba(255, 167, 38, 0.1)', borderColor: 'warning.main', IconComponent: BusinessIcon, iconColor: 'warning.dark', label: 'Moderate Risk / Needs Attention', statusIcon: CloudQueueIcon, statusColor: 'warning' };
-    case 'healthy':
-      return { bgcolor: 'rgba(102, 187, 106, 0.1)', borderColor: 'success.main', IconComponent: BusinessIcon, iconColor: 'success.dark', label: 'Stable Investments', statusIcon: CheckCircleOutlineIcon, statusColor: 'success' };
-    default:
-      return { bgcolor: 'grey.200', borderColor: 'grey.400', IconComponent: ShowChartIcon, iconColor: 'text.secondary', label: 'Awaiting Data', statusIcon: null, statusColor: 'default' };
-  }
+// Determine base appearance based on Level
+const getLevelInfo = (level) => {
+    // ... (no changes needed in this helper function) ...
+    switch (level) {
+        case 0: return { IconComponent: FoundationIcon, name: "Basic Exchange", baseColor: 'grey.500', baseBg: 'grey.100' };
+        case 1: return { IconComponent: AccountBalanceWalletIcon, name: "Managed Portfolio", baseColor: 'info.main', baseBg: 'info.50' };
+        case 2: return { IconComponent: DomainIcon, name: "Diversified Holdings", baseColor: 'primary.main', baseBg: 'primary.50' };
+        default: return { IconComponent: FoundationIcon, name: "Investment District", baseColor: 'grey.500', baseBg: 'grey.100' };
+    }
 };
 
-function InvestmentDistrict({ status = 'idle', score = 50 }) {
-  const style = getDistrictStyle(status);
-  const { IconComponent, statusIcon: StatusIcon } = style; // Destructure icon components
+// Determine temporary status overlay icon and color
+const getStatusOverlay = (status) => {
+    // *** FIX: Added check for undefined/null status ***
+    if (!status) {
+        // If status is undefined or null, return the default 'idle' state object immediately
+        return { statusIcon: null, statusColor: 'default', label: 'Status Loading...' }; // Changed label slightly
+    }
+    // *** END FIX ***
+
+    switch (status) {
+        case 'risky': return { statusIcon: WarningAmberIcon, statusColor: 'error', label: 'High Risk!' };
+        case 'moderate': return { statusIcon: CloudQueueIcon, statusColor: 'warning', label: 'Moderate Risk' };
+        case 'healthy': return { statusIcon: CheckCircleOutlineIcon, statusColor: 'success', label: 'Stable' };
+        default: return { statusIcon: null, statusColor: 'default', label: 'Status Idle' }; // Default for known, non-matching statuses
+    }
+};
+
+// Accept level prop from the data object passed down
+function InvestmentDistrict({ status = 'idle', score = 50, level = 0 }) {
+  const levelInfo = getLevelInfo(level);
+  const statusOverlay = getStatusOverlay(status); // Now guaranteed to return an object
+  const LevelIcon = levelInfo.IconComponent;
+  // This destructuring should now be safe because statusOverlay is always an object
+  const StatusIcon = statusOverlay.statusIcon;
+  const statusColor = statusOverlay.statusColor; // Get color for badge too
+  const statusLabel = statusOverlay.label; // Get label
+
+  // Determine final styles - status overrides level color *when not idle*
+  const finalBorderColor = status !== 'idle' && statusColor !== 'default' ? `${statusColor}.main` : levelInfo.baseColor;
+  // Use level background as base, overlay status tint if not idle/healthy
+  const baseBgColor = levelInfo.baseBg;
+  const statusBgTint = status === 'risky' ? 'error.light' : status === 'moderate' ? 'warning.light' : baseBgColor; // Use light status color or base
+  const finalBgColor = status !== 'idle' && status !== 'healthy' ? statusBgTint : baseBgColor;
+
+  const tooltipTitle = `Lvl ${level} ${levelInfo.name} (${statusLabel}) - Score: ${score}`;
 
   return (
     <Card
       variant="outlined"
       sx={{
-        borderColor: style.borderColor,
-        bgcolor: style.bgcolor,
-        minWidth: '160px', // Slightly wider
-        textAlign: 'center',
-        position: 'relative', // Needed for Badge positioning
-        overflow: 'visible', // Allow badge to overlap border slightly
-         boxShadow: 3, // Add some shadow
-         transition: 'all 0.3s ease-in-out',
-         '&:hover': {
-             transform: 'translateY(-3px)',
-             boxShadow: 6,
-         }
+        borderColor: finalBorderColor, bgcolor: finalBgColor, minWidth: '170px',
+        textAlign: 'center', position: 'relative', overflow: 'visible',
+        boxShadow: 3, transition: 'all 0.3s ease-in-out',
+        '&:hover': { transform: 'translateY(-3px)', boxShadow: 6 }
       }}
     >
-      {/* Status Badge - conditionally rendered */}
-      {StatusIcon && (
+      {/* Status Badge - Only show if status is not idle AND StatusIcon exists */}
+      {StatusIcon && status !== 'idle' && (
         <Badge
-          badgeContent={<StatusIcon sx={{ fontSize: '1rem' }} />} // Smaller icon in badge
-          color={style.statusColor}
+          badgeContent={<StatusIcon sx={{ fontSize: '1rem' }} />}
+          color={statusColor} // Use the destructured statusColor
           overlap="circular"
-          anchorOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
-          }}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
           sx={{
-              position: 'absolute',
-              top: -8, // Adjust position
-              right: -8,
-              '& .MuiBadge-badge': { // Style the badge itself
-                border: `2px solid ${style.borderColor}`,
-                padding: '0 4px',
-                backgroundColor: style.bgcolor // Match card background slightly
-              }
-           }}
+              position: 'absolute', top: -8, right: -8,
+              '& .MuiBadge-badge': {
+                  border: `2px solid ${finalBorderColor}`, padding: '0 4px', backgroundColor: finalBgColor
+                }
+            }}
         />
       )}
-      <Tooltip title={`${style.label} (Score: ${score})`} placement="top">
-        <CardContent>
+      <Tooltip title={tooltipTitle} placement="top">
+        {/* Ensure CardContent exists */}
+        <CardContent sx={{ pt: StatusIcon && status !== 'idle' ? 3 : 2 }}>
           <Stack spacing={1} alignItems="center">
-            <IconComponent sx={{ fontSize: 48, color: style.iconColor, mb: 1 }} /> {/* Larger main icon */}
-            <Typography fontWeight="bold" variant="body1" color="text.primary">
-              Investments
-            </Typography>
-             <Typography variant="caption" color="text.secondary">
-                Score: {score}
-            </Typography>
+            <LevelIcon sx={{ fontSize: 48, color: levelInfo.baseColor, mb: 1 }} />
+            <Typography fontWeight="bold" variant="body1" color="text.primary"> {levelInfo.name} </Typography>
+            <Typography variant="caption" color="text.secondary"> Score: {score} | Lvl: {level} </Typography>
+            <Divider sx={{ width: '60%', my: 1}} />
+            <Stack direction="row" alignItems="center" spacing={0.5}>
+                 <TravelExploreIcon sx={{ fontSize: '0.8rem', color: 'text.disabled' }} />
+                 <Typography variant="caption" color="text.disabled" sx={{ fontStyle: 'italic'}}> Geo-Risk: N/A (Demo) </Typography>
+            </Stack>
           </Stack>
         </CardContent>
       </Tooltip>

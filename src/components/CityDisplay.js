@@ -6,21 +6,41 @@ import InvestmentDistrict from './InvestmentDistrict';
 import SpendingDistrict from './SpendingDistrict';
 import SavingsDistrict from './SavingsDistrict';
 
-// Accept hasSpendingOpportunity prop
-function CityDisplay({ investmentData, spendingData, savingsData, hasSpendingOpportunity }) {
+// Accept the full data objects and the opportunity flag
+// *** ADDED Default empty objects {} to prevent undefined errors on initial render ***
+function CityDisplay({
+  investmentData = {}, // <-- FIX: Added default
+  spendingData = {},   // <-- FIX: Added default
+  savingsData = {},    // <-- FIX: Added default
+  hasSpendingOpportunity
+}) {
   return (
-    <Box sx={{ width: '100%', p: { xs: 1, sm: 2 }, mt: 2 }}> {/* Add margin top, adjust padding */}
-      {/* Use Stack for layout, adjust spacing and direction for responsiveness */}
+    <Box sx={{ width: '100%', p: { xs: 1, sm: 2 }, mt: 2 }}>
       <Stack
-         direction={{ xs: 'column', md: 'row' }} // Column on small screens, row on medium+
-         spacing={3} // Increase spacing
+         direction={{ xs: 'column', md: 'row' }}
+         spacing={3}
          justifyContent="center"
-         alignItems="center" // Center items when stacked vertically
+         alignItems="stretch" // Stretch items to fill height if needed
       >
-        <InvestmentDistrict status={investmentData.status} score={investmentData.score} />
-        {/* Pass hasOpportunity to SpendingDistrict */}
-        <SpendingDistrict status={spendingData.status} score={spendingData.score} hasOpportunity={hasSpendingOpportunity} />
-        <SavingsDistrict status={savingsData.status} score={savingsData.score} />
+        {/* Pass down all needed props from the data object */}
+        {/* These will now safely read 'undefined' from the empty object on first render, */}
+        {/* which the child components handle with their own default props. */}
+        <InvestmentDistrict
+            status={investmentData.status}
+            score={investmentData.score}
+            level={investmentData.level}
+        />
+        <SpendingDistrict
+            status={spendingData.status}
+            score={spendingData.score}
+            level={spendingData.level}
+            hasOpportunity={hasSpendingOpportunity}
+         />
+        <SavingsDistrict
+            status={savingsData.status}
+            score={savingsData.score}
+            level={savingsData.level}
+        />
       </Stack>
     </Box>
   );
