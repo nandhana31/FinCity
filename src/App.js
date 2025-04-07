@@ -14,7 +14,7 @@ import CityDisplay from './components/CityDisplay';
 import ControlPanel from './components/ControlPanel';
 
 // --- CONFIGURATION ---
-const ALPHA_VANTAGE_API_KEY = 'QDVC9IPDN38OPHNO'; // <-- ENSURE YOUR KEY IS HERE
+const ALPHA_VANTAGE_API_KEY = 'process.env.REACT_APP_ALPHA_VANTAGE_API_KEY'; // <-- ENSURE YOUR KEY IS HERE
 const NEGATIVE_KEYWORDS = ['loss', 'risk', 'down', 'warn', 'drop', 'fail', 'investigation', 'probe', 'slump', 'crisis', 'cut', 'layoff', 'scandal', 'halt', 'bankruptcy', 'closure', 'decline', 'downgrade', 'concern'];
 const UPGRADE_COST = 2;
 const MAX_LEVEL = 2;
